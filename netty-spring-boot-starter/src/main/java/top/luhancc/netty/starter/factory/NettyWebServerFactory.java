@@ -7,22 +7,20 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.boot.web.servlet.server.AbstractServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ResourceLoaderAware;
-import org.springframework.core.io.ResourceLoader;
+import org.springframework.web.servlet.DispatcherServlet;
 import top.luhancc.netty.starter.handler.HttpChannelInitializer;
 import top.luhancc.netty.starter.netty.NettyWebServer;
-import top.luhancc.netty.starter.servlet.NettyServletContext;
 import top.luhancc.netty.starter.servlet.NettyServletConfig;
+import top.luhancc.netty.starter.servlet.NettyServletContext;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 
 /**
  * @author luHan
@@ -30,22 +28,15 @@ import javax.servlet.http.HttpServlet;
  * @since 1.0.0
  */
 public class NettyWebServerFactory extends AbstractServletWebServerFactory
-        implements ResourceLoaderAware, ServletWebServerFactory, ApplicationContextAware {
+        implements ServletWebServerFactory, BeanFactoryPostProcessor {
     private static final Logger log = LoggerFactory.getLogger(NettyWebServerFactory.class);
 
-    private ResourceLoader resourceLoader;
     private ServletContext servletContext;
-    private ApplicationContext applicationContext;
+    private DispatcherServlet dispatcherServlet;
 
     @Override
     public WebServer getWebServer(ServletContextInitializer... initializers) {
-        Object dispatcherServlet = applicationContext.getBean("dispatcherServlet");
-
-        if (dispatcherServlet == null) {
-            throw new RuntimeException("dispatcherServlet 为空");
-        }
         NettyServletContext servletContext = (NettyServletContext) getServletContext();
-        HttpServlet servlet = (HttpServlet) dispatcherServlet;
         EventLoopGroup boosGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         ServerBootstrap serverBootstrap = new ServerBootstrap();
@@ -53,7 +44,7 @@ public class NettyWebServerFactory extends AbstractServletWebServerFactory
                 // 设置NioServerSocketChannel作为服务器的通道实现
                 .channel(NioServerSocketChannel.class)
                 // 设置PipeLine的处理器，就是给workerGroup的EventLoop对应的PipeLine设置处理器
-                .childHandler(new HttpChannelInitializer(servlet, servletContext));
+                .childHandler(new HttpChannelInitializer(dispatcherServlet, servletContext));
 
         ServletContextInitializer[] initializersToUse = mergeInitializers(initializers);
         try {
@@ -61,7 +52,7 @@ public class NettyWebServerFactory extends AbstractServletWebServerFactory
                 servletContextInitializer.onStartup(servletContext);
             }
             NettyServletConfig servletConfig = new NettyServletConfig(servletContext);
-            servlet.init(servletConfig);
+            dispatcherServlet.init(servletConfig);
 
             return new NettyWebServer(getPort(), serverBootstrap, boosGroup, workerGroup, servletContext);
         } catch (ServletException e) {
@@ -78,12 +69,7 @@ public class NettyWebServerFactory extends AbstractServletWebServerFactory
     }
 
     @Override
-    public void setResourceLoader(ResourceLoader resourceLoader) {
-        this.resourceLoader = resourceLoader;
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        this.dispatcherServlet = beanFactory.getBean(DispatcherServlet.class);
     }
 }
