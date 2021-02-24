@@ -1,5 +1,12 @@
 package top.luhancc.netty.starter.servlet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import top.luhancc.netty.starter.netty.core.DefaultLastFilter;
+import top.luhancc.netty.starter.netty.core.NettyFilterConfig;
+import top.luhancc.netty.starter.netty.core.NettyFilterConfigChain;
+import top.luhancc.netty.starter.netty.core.NettyFilterRegistration;
+
 import javax.servlet.*;
 import javax.servlet.descriptor.JspConfigDescriptor;
 import java.io.InputStream;
@@ -7,6 +14,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author luHan
@@ -14,8 +22,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 1.0.0
  */
 public class NettyServletContext implements ServletContext {
+    private static final Logger log = LoggerFactory.getLogger(NettyServletContext.class);
+
+
     private final Map<String, String> parameters = new ConcurrentHashMap<>();
     protected Map<String, Object> attributes = new ConcurrentHashMap<>();
+    protected Map<String, Filter> filters = new ConcurrentHashMap<>();
+
+    private NettyFilterConfigChain filterConfigChain = new NettyFilterConfigChain();
 
     @Override
     public String getContextPath() {
@@ -196,18 +210,18 @@ public class NettyServletContext implements ServletContext {
     }
 
     @Override
-    public FilterRegistration.Dynamic addFilter(String s, String s1) {
-        return null;
+    public FilterRegistration.Dynamic addFilter(String filterName, String filterClass) {
+        return addFilter(filterName, filterClass, null);
     }
 
     @Override
-    public FilterRegistration.Dynamic addFilter(String s, Filter filter) {
-        return null;
+    public FilterRegistration.Dynamic addFilter(String filterName, Filter filter) {
+        return addFilter(filterName, filter.getClass().getName(), filter);
     }
 
     @Override
-    public FilterRegistration.Dynamic addFilter(String s, Class<? extends Filter> aClass) {
-        return null;
+    public FilterRegistration.Dynamic addFilter(String filterName, Class<? extends Filter> filterClass) {
+        return addFilter(filterName, filterClass.getName(), null);
     }
 
     @Override
@@ -313,5 +327,40 @@ public class NettyServletContext implements ServletContext {
     @Override
     public void setResponseCharacterEncoding(String s) {
 
+    }
+
+    private Map<String, NettyFilterConfig> filterConfigs = new ConcurrentHashMap<>();
+
+    private FilterRegistration.Dynamic addFilter(String filterName, String filterClass, Filter filter) {
+        filters.put(filterName, filter);
+        filterConfigs.put(filterName, new NettyFilterConfig(filter, filterName, this));
+        return new NettyFilterRegistration();
+    }
+
+    /**
+     * 初始化filter
+     */
+    public void filterStart() {
+        for (Map.Entry<String, Filter> entry : filters.entrySet()) {
+            NettyFilterConfig filterConfig = filterConfigs.get(entry.getKey());
+            try {
+                entry.getValue().init(filterConfig);
+
+                filterConfigChain.addFirstFilterConfig(filterConfig);
+            } catch (ServletException e) {
+                log.error("init filter fail ", e);
+            }
+        }
+
+        // 添加没有任何操作的空实现Filter
+        DefaultLastFilter emptyFilter = new DefaultLastFilter();
+        filters.put("netty_defaultLastFilter", emptyFilter);
+        NettyFilterConfig emptyFilterConfig = new NettyFilterConfig(emptyFilter, "netty_defaultLastFilter", this);
+        filterConfigs.put("netty_defaultLastFilter", emptyFilterConfig);
+        filterConfigChain.addLastFilterConfig(emptyFilterConfig);
+    }
+
+    public NettyFilterConfigChain getFilterConfigChain() {
+        return this.filterConfigChain;
     }
 }

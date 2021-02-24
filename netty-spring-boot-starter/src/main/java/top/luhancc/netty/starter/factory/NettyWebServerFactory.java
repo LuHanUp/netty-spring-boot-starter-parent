@@ -44,7 +44,7 @@ public class NettyWebServerFactory extends AbstractServletWebServerFactory
         if (dispatcherServlet == null) {
             throw new RuntimeException("dispatcherServlet 为空");
         }
-        ServletContext servletContext = getServletContext();
+        NettyServletContext servletContext = (NettyServletContext) getServletContext();
         HttpServlet servlet = (HttpServlet) dispatcherServlet;
         EventLoopGroup boosGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -63,7 +63,7 @@ public class NettyWebServerFactory extends AbstractServletWebServerFactory
             NettyServletConfig servletConfig = new NettyServletConfig(servletContext);
             servlet.init(servletConfig);
 
-            return new NettyWebServer(getPort(), serverBootstrap, boosGroup, workerGroup);
+            return new NettyWebServer(getPort(), serverBootstrap, boosGroup, workerGroup, servletContext);
         } catch (ServletException e) {
             log.error("context init fail:", e);
             return null;

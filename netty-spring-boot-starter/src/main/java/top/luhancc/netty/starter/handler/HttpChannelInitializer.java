@@ -5,6 +5,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import top.luhancc.netty.starter.servlet.NettyServletContext;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServlet;
@@ -16,9 +17,9 @@ import javax.servlet.http.HttpServlet;
  */
 public class HttpChannelInitializer extends ChannelInitializer<SocketChannel> {
     private HttpServlet servlet;
-    private ServletContext servletContext;
+    private NettyServletContext servletContext;
 
-    public HttpChannelInitializer(HttpServlet servlet, ServletContext servletContext) {
+    public HttpChannelInitializer(HttpServlet servlet, NettyServletContext servletContext) {
         this.servlet = servlet;
         this.servletContext = servletContext;
     }
@@ -30,7 +31,7 @@ public class HttpChannelInitializer extends ChannelInitializer<SocketChannel> {
         pipeline.addLast("httpServerCodec", new HttpServerCodec());
         pipeline.addLast("httpObjectAggregator", new HttpObjectAggregator(65536));
         pipeline.addLast("generateServletRequestHandler", new GenerateServletRequestHandler());
-//        pipeline.addLast("MyHttpServerHandler", new ServletNettyHandler(servlet, servletContext));
-        pipeline.addLast("MyHttpServerHandler", new DispatcherServletHandler(servlet));
+        pipeline.addLast("nettyFilterHandler", new NettyFilterHandler(servletContext));
+        pipeline.addLast("dispatcherServletHandler", new DispatcherServletHandler(servlet));
     }
 }

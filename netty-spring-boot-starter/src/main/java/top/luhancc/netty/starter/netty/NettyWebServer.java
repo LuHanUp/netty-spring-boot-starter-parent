@@ -7,7 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.server.WebServerException;
+import top.luhancc.netty.starter.servlet.NettyServletContext;
 
+import javax.servlet.ServletContext;
 import java.net.InetSocketAddress;
 
 /**
@@ -24,18 +26,24 @@ public class NettyWebServer implements WebServer {
 
     private volatile boolean started;
 
+    private NettyServletContext servletContext;
+
     private int port;
 
-    public NettyWebServer(int port, ServerBootstrap serverBootstrap, EventLoopGroup boosGroup, EventLoopGroup workerGroup) {
+    public NettyWebServer(int port, ServerBootstrap serverBootstrap, EventLoopGroup boosGroup, EventLoopGroup workerGroup, NettyServletContext servletContext) {
         this.serverBootstrap = serverBootstrap;
         this.boosGroup = boosGroup;
         this.workerGroup = workerGroup;
         this.port = port;
+        this.servletContext = servletContext;
 
         initialize();
     }
 
     private void initialize() {
+        // filter start
+        startFilter();
+
         // 绑定端口并启动
         ChannelFuture channelFuture = null;
         try {
@@ -44,6 +52,10 @@ public class NettyWebServer implements WebServer {
         } catch (InterruptedException e) {
             log.error("starting netty fail:", e);
         }
+    }
+
+    private void startFilter() {
+        servletContext.filterStart();
     }
 
     @Override
