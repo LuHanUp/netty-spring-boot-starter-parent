@@ -17,6 +17,7 @@ import top.luhancc.netty.starter.servlet.NettyHttpServletResponse;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
 import java.util.Enumeration;
 
@@ -42,9 +43,9 @@ public class DispatcherServletHandler extends SimpleChannelInboundHandler<HttpSe
         servletResponse.setCharacterEncoding(CharsetUtil.UTF_8.displayName());
         dispatcherServlet.service(servletRequest, servletResponse);
 
-        if (HttpResponseStatus.NOT_FOUND.code() == servletResponse.getStatus()) {
+        if (HttpResponseStatus.OK.code() != servletResponse.getStatus()) {
             // 重新发送一个/error请求
-            HttpServletRequest errorServletRequest = createErrorServletRequest(servletRequest);
+            HttpServletRequest errorServletRequest = createErrorServletRequest(servletRequest, servletResponse);
             servletResponse = new NettyHttpServletResponse();
             dispatcherServlet.service(errorServletRequest, servletResponse);
         }
@@ -71,7 +72,7 @@ public class DispatcherServletHandler extends SimpleChannelInboundHandler<HttpSe
         }
     }
 
-    private HttpServletRequest createErrorServletRequest(HttpServletRequest httpServletRequest) {
+    private HttpServletRequest createErrorServletRequest(HttpServletRequest httpServletRequest, HttpServletResponse servletResponse) {
         NettyHttpServletRequest servletRequest = new NettyHttpServletRequest();
         servletRequest.setRequestURI("/error");
         servletRequest.setPathInfo(null);
@@ -92,7 +93,7 @@ public class DispatcherServletHandler extends SimpleChannelInboundHandler<HttpSe
             String name = headerNames.nextElement();
             servletRequest.addHeader(name, httpServletRequest.getHeader(name));
         }
-        servletRequest.setAttribute(RequestDispatcher.ERROR_STATUS_CODE, 404);
+        servletRequest.setAttribute(RequestDispatcher.ERROR_STATUS_CODE, servletResponse.getStatus());
         servletRequest.setAttribute(RequestDispatcher.ERROR_REQUEST_URI, httpServletRequest.getRequestURI());
         return servletRequest;
     }
