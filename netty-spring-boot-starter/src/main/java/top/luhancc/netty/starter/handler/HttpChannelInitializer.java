@@ -7,7 +7,6 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import top.luhancc.netty.starter.servlet.NettyServletContext;
 
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServlet;
 
 /**

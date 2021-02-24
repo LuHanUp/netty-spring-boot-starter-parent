@@ -9,7 +9,6 @@ import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.util.CharsetUtil;
 import top.luhancc.netty.starter.netty.core.NettyFilterConfigChain;
 import top.luhancc.netty.starter.servlet.NettyHttpServletResponse;
 import top.luhancc.netty.starter.servlet.NettyServletContext;
