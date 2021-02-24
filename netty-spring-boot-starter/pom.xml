@@ -2,14 +2,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>netty-spring-boot-starter-parent</artifactId>
-        <groupId>top.luhancc.neety</groupId>
-        <version>${version}</version>
-    </parent>
-    <modelVersion>4.0.0</modelVersion>
-
+    <groupId>top.luhancc.neety</groupId>
     <artifactId>netty-spring-boot-starter</artifactId>
+    <version>0.0.1</version>
+
+    <modelVersion>4.0.0</modelVersion>
 
     <properties>
         <spring-boot.version>2.3.4.RELEASE</spring-boot.version>
