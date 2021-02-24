@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.server.WebServerException;
 
+import java.net.InetSocketAddress;
+
 /**
  * @author luHan
  * @create 2021/2/23 16:12
@@ -37,8 +39,8 @@ public class NettyWebServer implements WebServer {
         // 绑定端口并启动
         ChannelFuture channelFuture = null;
         try {
-            channelFuture = serverBootstrap.bind(port).sync();
-            System.out.println("服务器准备好了...");
+            channelFuture = serverBootstrap.bind(new InetSocketAddress(port)).sync();
+            log.info("Netty started on port(s): {} (http) with context path ''", port);
         } catch (InterruptedException e) {
             log.error("starting netty fail:", e);
         }

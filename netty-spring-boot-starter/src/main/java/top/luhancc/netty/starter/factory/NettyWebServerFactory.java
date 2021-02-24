@@ -66,7 +66,7 @@ public class NettyWebServerFactory extends AbstractServletWebServerFactory
         } catch (ServletException e) {
             e.printStackTrace();
         }
-        return new NettyWebServer(8888, serverBootstrap, boosGroup, workerGroup);
+        return new NettyWebServer(getPort(), serverBootstrap, boosGroup, workerGroup);
     }
 
     private ServletContext getServletContext() {
