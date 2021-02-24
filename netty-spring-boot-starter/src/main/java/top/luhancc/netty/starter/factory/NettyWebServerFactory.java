@@ -18,7 +18,7 @@ import org.springframework.core.io.ResourceLoader;
 import top.luhancc.netty.starter.handler.HttpChannelInitializer;
 import top.luhancc.netty.starter.netty.NettyWebServer;
 import top.luhancc.netty.starter.servlet.NettyServletContext;
-import top.luhancc.netty.starter.servlet.SimpleServletConfig;
+import top.luhancc.netty.starter.servlet.NettyServletConfig;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -60,13 +60,14 @@ public class NettyWebServerFactory extends AbstractServletWebServerFactory
             for (ServletContextInitializer servletContextInitializer : initializersToUse) {
                 servletContextInitializer.onStartup(servletContext);
             }
-            SimpleServletConfig servletConfig = new SimpleServletConfig();
-            servletConfig.setServletContext(servletContext);
+            NettyServletConfig servletConfig = new NettyServletConfig(servletContext);
             servlet.init(servletConfig);
+
+            return new NettyWebServer(getPort(), serverBootstrap, boosGroup, workerGroup);
         } catch (ServletException e) {
-            e.printStackTrace();
+            log.error("context init fail:", e);
+            return null;
         }
-        return new NettyWebServer(getPort(), serverBootstrap, boosGroup, workerGroup);
     }
 
     private ServletContext getServletContext() {
