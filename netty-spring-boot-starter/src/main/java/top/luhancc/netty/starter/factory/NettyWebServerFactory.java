@@ -7,12 +7,12 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.boot.web.servlet.server.AbstractServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.web.servlet.DispatcherServlet;
 import top.luhancc.netty.starter.handler.HttpChannelInitializer;
 import top.luhancc.netty.starter.netty.NettyWebServer;
@@ -28,7 +28,7 @@ import javax.servlet.ServletException;
  * @since 1.0.0
  */
 public class NettyWebServerFactory extends AbstractServletWebServerFactory
-        implements ServletWebServerFactory, BeanFactoryPostProcessor {
+        implements ServletWebServerFactory, ApplicationContextAware {
     private static final Logger log = LoggerFactory.getLogger(NettyWebServerFactory.class);
 
     private ServletContext servletContext;
@@ -69,7 +69,7 @@ public class NettyWebServerFactory extends AbstractServletWebServerFactory
     }
 
     @Override
-    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        this.dispatcherServlet = beanFactory.getBean(DispatcherServlet.class);
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.dispatcherServlet = applicationContext.getBean(DispatcherServlet.class);
     }
 }
