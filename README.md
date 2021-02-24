@@ -1,7 +1,8 @@
 # netty-spring-boot-starter-parent
 
 #### 介绍
-将netty作为服务器整合进spring-boot中
+将netty作为服务器整合进spring-boot中  
+可以替换tomcat作为Web容器
 
 #### 软件架构
 软件架构说明
